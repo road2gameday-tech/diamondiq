@@ -381,8 +381,7 @@ export default function DiamondIQ() {
   const [practiceCategory, setPracticeCategory] = useState(null);
   const [practicePhase,    setPracticePhase]     = useState("pick"); // pick | playing | done
 
-  // ── Daily state
-  const [dailyAnswers, setDailyAnswers] = useState([]);
+
 
   const timerRef = useRef(null);
 
@@ -393,6 +392,11 @@ export default function DiamondIQ() {
       saveProfile(next);
       return next;
     });
+  }, []);
+
+  const endGame = useCallback(() => {
+    clearInterval(timerRef.current);
+    setPhase("result");
   }, []);
 
   // ─── Timer
@@ -406,7 +410,7 @@ export default function DiamondIQ() {
       }, 1000);
     }
     return () => clearInterval(timerRef.current);
-  }, [phase]);
+  }, [phase, endGame]);
 
   // ─────────────────────────────────────────────────────────────
   // GAME ACTIONS
@@ -430,7 +434,6 @@ export default function DiamondIQ() {
     }
     const qs = DAILY_POOL.map(q => ({ ...q, choices: shuffle(q.choices) }));
     setQuestions(qs);
-    setDailyAnswers([]);
     resetGameState(null);
     setGameMode("daily");
     setPhase("daily");
@@ -454,10 +457,6 @@ export default function DiamondIQ() {
     setCatAccuracy({ "STATS & RECORDS":{c:0,t:0}, "RULES & SITUATIONS":{c:0,t:0}, "HISTORIC MOMENTS":{c:0,t:0}, "YOUTH & COLLEGE":{c:0,t:0}, "FUN & RANDOM":{c:0,t:0} });
   };
 
-  const endGame = useCallback((finalScore, finalHistory, finalCatAcc) => {
-    clearInterval(timerRef.current);
-    setPhase("result");
-  }, []);
 
   const handleAnswer = (choice) => {
     if (feedback !== null) return;
@@ -769,7 +768,6 @@ export default function DiamondIQ() {
 
   // ── INTRO ──────────────────────────────────────────────────
   if (phase === "intro") {
-    const today = todayKey();
     const streakDays = profile.loginStreak || 0;
     return (
       <>
